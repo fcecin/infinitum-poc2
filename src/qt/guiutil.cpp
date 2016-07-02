@@ -199,7 +199,7 @@ bool parseInfinitumURI(QString uri, SendCoinsRecipient *out)
     //    which will lower-case it (and thus invalidate the address).
     if(uri.startsWith("infinitum://", Qt::CaseInsensitive))
     {
-        uri.replace(0, 10, "infinitum:");
+        uri.replace(0, 12, "infinitum:");
     }
     QUrl uriInstance(uri);
     return parseInfinitumURI(uriInstance, out);

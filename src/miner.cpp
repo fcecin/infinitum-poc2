@@ -276,8 +276,11 @@ CBlockTemplate* CreateNewBlock(const CChainParams& chainparams, const CScript& s
         nLastBlockSize = nBlockSize;
         LogPrintf("CreateNewBlock(): total size %u txs: %u fees: %ld sigops %d\n", nBlockSize, nBlockTx, nFees, nBlockSigOps);
 
+	// Infinitum:: difficulty for next (this) block used to determine its subsidy as well
+	unsigned int nNextWorkRequired = GetNextWorkRequired(pindexPrev, pblock, chainparams.GetConsensus());
+
         // Compute final coinbase transaction.
-        txNew.vout[0].nValue = nFees + GetBlockSubsidy(nHeight, chainparams.GetConsensus());
+        txNew.vout[0].nValue = nFees + GetBlockSubsidy(nNextWorkRequired, nHeight, chainparams.GetConsensus());
         txNew.vin[0].scriptSig = CScript() << nHeight << OP_0;
         pblock->vtx[0] = txNew;
         pblocktemplate->vTxFees[0] = -nFees;
@@ -285,7 +288,7 @@ CBlockTemplate* CreateNewBlock(const CChainParams& chainparams, const CScript& s
         // Fill in header
         pblock->hashPrevBlock  = pindexPrev->GetBlockHash();
         UpdateTime(pblock, chainparams.GetConsensus(), pindexPrev);
-        pblock->nBits          = GetNextWorkRequired(pindexPrev, pblock, chainparams.GetConsensus());
+        pblock->nBits          = nNextWorkRequired;
         pblock->nNonce         = 0;
         pblocktemplate->vTxSigOps[0] = GetLegacySigOpCount(pblock->vtx[0]);
 

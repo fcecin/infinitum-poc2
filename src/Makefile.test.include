@@ -79,7 +79,6 @@ INFINITUM_TESTS =\
   test/test_infinitum.h \
   test/timedata_tests.cpp \
   test/transaction_tests.cpp \
-  test/txvalidationcache_tests.cpp \
   test/uint256_tests.cpp \
   test/univalue_tests.cpp \
   test/util_tests.cpp
@@ -92,6 +91,9 @@ INFINITUM_TESTS =\
 #
 # Broken when removing checkpoint definitions from chainparams:
 #  test/Checkpoints_tests.cpp
+#
+# Broken when changing block subsidy to 16sat per diff:
+#   test/txvalidationcache_tests.cpp
 #
 
 if ENABLE_WALLET

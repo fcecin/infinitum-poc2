@@ -97,10 +97,11 @@ public:
          * The characters are rarely used upper ASCII, not valid as UTF-8, and produce
          * a large 32-bit integer with any alignment.
          */
-        pchMessageStart[0] = 0xf9;
-        pchMessageStart[1] = 0xbe;
-        pchMessageStart[2] = 0xb4;
-        pchMessageStart[3] = 0xd9;
+	// Infinitum:: changed protocol magic numbers (regular net)
+        pchMessageStart[0] = 0xef;
+        pchMessageStart[1] = 0xec;
+        pchMessageStart[2] = 0xd8;
+        pchMessageStart[3] = 0x2e;
         vAlertPubKey = ParseHex("04fc9702847840aaf195de8442ebecedf5b095cdbb9bc716bda9110971b28a49e0ead8564ff0db22209e0374782c093bb899692d524e9d6a6956e7c5ecbcd68284");
         nDefaultPort = 44144;
         nMaxTipAge = 24 * 60 * 60;
@@ -185,10 +186,11 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nStartTime = 1456790400; // March 1st, 2016
         consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nTimeout = 1493596800; // May 1st, 2017
 
-        pchMessageStart[0] = 0x0b;
-        pchMessageStart[1] = 0x11;
-        pchMessageStart[2] = 0x09;
-        pchMessageStart[3] = 0x07;
+	// Infinitum:: changed protocol magic numbers (test net)
+        pchMessageStart[0] = 0x0e;
+        pchMessageStart[1] = 0xbb;
+        pchMessageStart[2] = 0xfb;
+        pchMessageStart[3] = 0xdd;
         vAlertPubKey = ParseHex("04302390343f91cc401d56d68b123028bf52e5fca1939df127f63c6467cdf9c8e2c14b61104cf817d0b780da337893ecc4aaff1309e536162dabbdb45200ca2b0a");
         nDefaultPort = 44145;
         nMaxTipAge = 0x7fffffff;
@@ -258,10 +260,11 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nStartTime = 0;
         consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nTimeout = 999999999999ULL;
 
-        pchMessageStart[0] = 0xfa;
-        pchMessageStart[1] = 0xbf;
-        pchMessageStart[2] = 0xb5;
-        pchMessageStart[3] = 0xda;
+	// Infinitum:: changed protocol magic numbers (regtests)
+        pchMessageStart[0] = 0xf0;
+        pchMessageStart[1] = 0xed;
+        pchMessageStart[2] = 0xd9;
+        pchMessageStart[3] = 0x2f;
         nMaxTipAge = 24 * 60 * 60;
         nDefaultPort = 18444;
         nPruneAfterHeight = 1000;

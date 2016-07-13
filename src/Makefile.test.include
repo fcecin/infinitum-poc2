@@ -45,7 +45,6 @@ INFINITUM_TESTS =\
   test/bip32_tests.cpp \
   test/bloom_tests.cpp \
   test/checkblock_tests.cpp \
-  test/Checkpoints_tests.cpp \
   test/coins_tests.cpp \
   test/compress_tests.cpp \
   test/crypto_tests.cpp \
@@ -91,6 +90,8 @@ INFINITUM_TESTS =\
 #  test/miner_tests.cpp
 #  test/versionbits_tests.cpp
 #
+# Broken when removing checkpoint definitions from chainparams:
+#  test/Checkpoints_tests.cpp
 #
 
 if ENABLE_WALLET

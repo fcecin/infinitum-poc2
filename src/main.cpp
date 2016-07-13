@@ -36,6 +36,9 @@
 #include "validationinterface.h"
 #include "versionbits.h"
 
+// Infinitum:: including infinitum.h
+#include "infinitum.h"
+
 #include <sstream>
 
 #include <boost/algorithm/string/replace.hpp>
@@ -2164,6 +2167,11 @@ static VersionBitsCache versionbitscache;
 
 int32_t ComputeBlockVersion(const CBlockIndex* pindexPrev, const Consensus::Params& params)
 {
+    // Infinitum:: FIXME/TODO: set dust-vote and the extra time-stamp
+
+    // Infinitum:: Versionbits=NOP
+    return INFINITUM_BLOCK_VERSION & 0xFF;
+
     LOCK(cs_main);
     int32_t nVersion = VERSIONBITS_TOP_BITS;
 
@@ -2180,30 +2188,32 @@ int32_t ComputeBlockVersion(const CBlockIndex* pindexPrev, const Consensus::Para
 /**
  * Threshold condition checker that triggers when unknown versionbits are seen on the network.
  */
-class WarningBitsConditionChecker : public AbstractThresholdConditionChecker
-{
-private:
-    int bit;
+// Infinitum:: Versionbits=NOP
+//class WarningBitsConditionChecker : public AbstractThresholdConditionChecker
+//{
+//private:
+//    int bit;
+//
+//public:
+//    WarningBitsConditionChecker(int bitIn) : bit(bitIn) {}
+//
+//    int64_t BeginTime(const Consensus::Params& params) const { return 0; }
+//    int64_t EndTime(const Consensus::Params& params) const { return std::numeric_limits<int64_t>::max(); }
+//    int Period(const Consensus::Params& params) const { return params.nMinerConfirmationWindow; }
+//    int Threshold(const Consensus::Params& params) const { return params.nRuleChangeActivationThreshold; }
+//
+//    bool Condition(const CBlockIndex* pindex, const Consensus::Params& params) const
+//    {
+//        return ((pindex->nVersion & VERSIONBITS_TOP_MASK) == VERSIONBITS_TOP_BITS) &&
+//               ((pindex->nVersion >> bit) & 1) != 0 &&
+//               ((ComputeBlockVersion(pindex->pprev, params) >> bit) & 1) == 0;
+//    }
+//};
 
-public:
-    WarningBitsConditionChecker(int bitIn) : bit(bitIn) {}
-
-    int64_t BeginTime(const Consensus::Params& params) const { return 0; }
-    int64_t EndTime(const Consensus::Params& params) const { return std::numeric_limits<int64_t>::max(); }
-    int Period(const Consensus::Params& params) const { return params.nMinerConfirmationWindow; }
-    int Threshold(const Consensus::Params& params) const { return params.nRuleChangeActivationThreshold; }
-
-    bool Condition(const CBlockIndex* pindex, const Consensus::Params& params) const
-    {
-        return ((pindex->nVersion & VERSIONBITS_TOP_MASK) == VERSIONBITS_TOP_BITS) &&
-               ((pindex->nVersion >> bit) & 1) != 0 &&
-               ((ComputeBlockVersion(pindex->pprev, params) >> bit) & 1) == 0;
-    }
-};
+// Infinitum:: Versionbits=NOP
+//static ThresholdConditionCache warningcache[VERSIONBITS_NUM_BITS];
 
 // Protected by cs_main
-static ThresholdConditionCache warningcache[VERSIONBITS_NUM_BITS];
-
 static int64_t nTimeCheck = 0;
 static int64_t nTimeForks = 0;
 static int64_t nTimeVerify = 0;
@@ -2582,25 +2592,29 @@ void static UpdateTip(CBlockIndex *pindexNew) {
     {
         int nUpgraded = 0;
         const CBlockIndex* pindex = chainActive.Tip();
-        for (int bit = 0; bit < VERSIONBITS_NUM_BITS; bit++) {
-            WarningBitsConditionChecker checker(bit);
-            ThresholdState state = checker.GetStateFor(pindex, chainParams.GetConsensus(), warningcache[bit]);
-            if (state == THRESHOLD_ACTIVE || state == THRESHOLD_LOCKED_IN) {
-                if (state == THRESHOLD_ACTIVE) {
-                    strMiscWarning = strprintf(_("Warning: unknown new rules activated (versionbit %i)"), bit);
-                    if (!fWarned) {
-                        CAlert::Notify(strMiscWarning, true);
-                        fWarned = true;
-                    }
-                } else {
-                    LogPrintf("%s: unknown new rules are about to activate (versionbit %i)\n", __func__, bit);
-                }
-            }
-        }
+        
+        // Infinitum:: Versionbits=NOP
+	//for (int bit = 0; bit < VERSIONBITS_NUM_BITS; bit++) {
+        //    WarningBitsConditionChecker checker(bit);
+        //    ThresholdState state = checker.GetStateFor(pindex, chainParams.GetConsensus(), warningcache[bit]);
+        //    if (state == THRESHOLD_ACTIVE || state == THRESHOLD_LOCKED_IN) {
+        //        if (state == THRESHOLD_ACTIVE) {
+        //            strMiscWarning = strprintf(_("Warning: unknown new rules activated (versionbit %i)"), bit);
+        //            if (!fWarned) {
+        //                CAlert::Notify(strMiscWarning, true);
+        //                fWarned = true;
+	//           }
+        //        } else {
+        //            LogPrintf("%s: unknown new rules are about to activate (versionbit %i)\n", __func__, bit);
+        //        }
+        //    }
+        //}
         for (int i = 0; i < 100 && pindex != NULL; i++)
         {
-            int32_t nExpectedVersion = ComputeBlockVersion(pindex->pprev, chainParams.GetConsensus());
-            if (pindex->nVersion > VERSIONBITS_LAST_OLD_BLOCK_VERSION && (pindex->nVersion & ~nExpectedVersion) != 0)
+	    // Infinitum:: Replacing Versionbits with a block version const int
+            //int32_t nExpectedVersion = ComputeBlockVersion(pindex->pprev, chainParams.GetConsensus());
+            //if (pindex->nVersion > VERSIONBITS_LAST_OLD_BLOCK_VERSION && (pindex->nVersion & ~nExpectedVersion) != 0)
+	    if (pindex->nVersion > INFINITUM_BLOCK_VERSION)
                 ++nUpgraded;
             pindex = pindex->pprev;
         }
@@ -3940,9 +3954,11 @@ void UnloadBlockIndex()
     mapNodeState.clear();
     recentRejects.reset(NULL);
     versionbitscache.Clear();
-    for (int b = 0; b < VERSIONBITS_NUM_BITS; b++) {
-        warningcache[b].clear();
-    }
+
+    // Infinitum:: Versionbits=NOP
+    //for (int b = 0; b < VERSIONBITS_NUM_BITS; b++) {
+    //    warningcache[b].clear();
+    //}
 
     BOOST_FOREACH(BlockMap::value_type& entry, mapBlockIndex) {
         delete entry.second;

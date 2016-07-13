@@ -6,6 +6,9 @@
 
 ThresholdState AbstractThresholdConditionChecker::GetStateFor(const CBlockIndex* pindexPrev, const Consensus::Params& params, ThresholdConditionCache& cache) const
 {
+    // Infinitum:: Versionbits=NOP; every "deployment" is an insta-hard-fork from day 0; use block version as before (see infinitum.h).
+    return THRESHOLD_ACTIVE;
+
     int nPeriod = Period(params);
     int nThreshold = Threshold(params);
     int64_t nTimeStart = BeginTime(params);

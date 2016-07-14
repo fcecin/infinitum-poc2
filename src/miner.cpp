@@ -152,9 +152,6 @@ CBlockTemplate* CreateNewBlock(const CChainParams& chainparams, const CScript& s
 	pblock->nVersion &= 0xFF;
 	pblock->nVersion |= (nPruneDustVote << 8);
 
-	printf("pblock nversion = %u\n", pblock->nVersion);
-
-
         int64_t nLockTimeCutoff = (STANDARD_LOCKTIME_VERIFY_FLAGS & LOCKTIME_MEDIAN_TIME_PAST)
                                 ? nMedianTimePast
                                 : pblock->GetBlockTime();

@@ -1568,14 +1568,14 @@ bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex, const Consensus
     return true;
 }
 
-// Infinitum:: reward of a block is 16 satoshis (">>4") per difficulty of that block.
+// Infinitum:: reward of a block is 16 satoshis (">>4") per difficulty of that block; minimum 16,000 satoshis.
 CAmount GetBlockSubsidy(unsigned int nBits, int nHeight, const Consensus::Params& consensusParams)
 {
   arith_uint256 nTarget, nMaximumTarget;
   nTarget.SetCompact(nBits);
   nMaximumTarget.SetCompact(0x1d00ffff);
   arith_uint256 nDiffSatoshis = nMaximumTarget / (nTarget >> 4);
-  CAmount nSubsidy = nDiffSatoshis.GetLow64();
+  CAmount nSubsidy = std::max(nDiffSatoshis.GetLow64(), 16000UL);
   return nSubsidy;
 }
 

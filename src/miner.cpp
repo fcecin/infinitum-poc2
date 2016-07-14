@@ -25,6 +25,9 @@
 #include "utilmoneystr.h"
 #include "validationinterface.h"
 
+// Infinitum:: include for block version
+#include "infinitum.h"
+
 #include <boost/thread.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <queue>
@@ -101,6 +104,9 @@ CBlockTemplate* CreateNewBlock(const CChainParams& chainparams, const CScript& s
     unsigned int nBlockPrioritySize = GetArg("-blockprioritysize", DEFAULT_BLOCK_PRIORITY_SIZE);
     nBlockPrioritySize = std::min(nBlockMaxSize, nBlockPrioritySize);
 
+    // Infinitum:: set the prune-dust vote byte [0..255]
+    unsigned int nPruneDustVote = GetArg("-prunedust", DEFAULT_PRUNE_DUST_VOTE) & 0xFF;
+
     // Minimum block size you want to create; block will be filled with free transactions
     // until there are no more or the block reaches this size:
     unsigned int nBlockMinSize = GetArg("-blockminsize", DEFAULT_BLOCK_MIN_SIZE);
@@ -132,11 +138,22 @@ CBlockTemplate* CreateNewBlock(const CChainParams& chainparams, const CScript& s
         pblock->nTime = GetAdjustedTime();
         const int64_t nMedianTimePast = pindexPrev->GetMedianTimePast();
 
-        pblock->nVersion = ComputeBlockVersion(pindexPrev, chainparams.GetConsensus());
+	// Infinitum:: new blockversion stuff since we killed versionbits
+        //pblock->nVersion = ComputeBlockVersion(pindexPrev, chainparams.GetConsensus());
+	pblock->nVersion = INFINITUM_BLOCK_VERSION;
+
         // -regtest only: allow overriding block.nVersion with
         // -blockversion=N to test forking scenarios
         if (chainparams.MineBlocksOnDemand())
             pblock->nVersion = GetArg("-blockversion", pblock->nVersion);
+
+	// Infinitum:: FIXME/TODO: use the higher 16 bits of nVersion for a timestamp extension
+	// Infinitum:: append the prune-dust vote option
+	pblock->nVersion &= 0xFF;
+	pblock->nVersion |= (nPruneDustVote << 8);
+
+	printf("pblock nversion = %u\n", pblock->nVersion);
+
 
         int64_t nLockTimeCutoff = (STANDARD_LOCKTIME_VERIFY_FLAGS & LOCKTIME_MEDIAN_TIME_PAST)
                                 ? nMedianTimePast

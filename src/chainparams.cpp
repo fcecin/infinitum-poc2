@@ -121,7 +121,9 @@ public:
         vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_main, pnSeed6_main + ARRAYLEN(pnSeed6_main));
 	vSeeds.clear();
 
-        fMiningRequiresPeers = true;
+	// Infinitum:: wanna mine blocks without peers? sure.
+        fMiningRequiresPeers = false;
+
         fDefaultConsistencyChecks = false;
         fRequireStandard = true;
         fMineBlocksOnDemand = false;

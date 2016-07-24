@@ -526,11 +526,15 @@ std::string LicenseInfo()
     // todo: remove urls from translations on next change
     return FormatParagraph(strprintf(_("Copyright (C) 2009-%i The Bitcoin Core Developers"), COPYRIGHT_YEAR)) + "\n" +
            "\n" +
+	   FormatParagraph(strprintf(_("Copyright (C) 2016-%i The Infinitum Developers"), COPYRIGHT_YEAR)) + "\n" +
+           "\n" +
            FormatParagraph(_("This is experimental software.")) + "\n" +
            "\n" +
            FormatParagraph(_("Distributed under the MIT software license, see the accompanying file COPYING or <http://www.opensource.org/licenses/mit-license.php>.")) + "\n" +
            "\n" +
-           FormatParagraph(_("This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit <https://www.openssl.org/> and cryptographic software written by Eric Young and UPnP software written by Thomas Bernard.")) +
+	   FormatParagraph(_("This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit <https://www.openssl.org/> and cryptographic software written by Eric Young and UPnP software written by Thomas Bernard.")) + "\n" +
+           "\n" +
+           FormatParagraph(_("The GetNextWorkRequired() code is based on the original difficulty retargeting algorithm developed by the BasicCoin project <https://github.com/zack-bitcoin/basiccoin/> and on the difficulty adjustment limits concept from the DigiByte Core project <https://digibyte.co/>.")) +
            "\n";
 }
 

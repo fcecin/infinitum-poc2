@@ -169,7 +169,10 @@ CBlockTemplate* CreateNewBlock(const CChainParams& chainparams, const CScript& s
             }
             std::make_heap(vecPriority.begin(), vecPriority.end(), pricomparer);
         }
-
+	
+	// Infinitum:: we will need a coins cache view below.
+	CCoinsViewCache view(pcoinsTip);
+	
         CTxMemPool::indexed_transaction_set::nth_index<3>::type::iterator mi = mempool.mapTx.get<3>().begin();
         CTxMemPool::txiter iter;
 
@@ -237,6 +240,11 @@ CBlockTemplate* CreateNewBlock(const CChainParams& chainparams, const CScript& s
 
             if (!IsFinalTx(tx, nHeight, nLockTimeCutoff))
                 continue;
+
+	    // Infinitum:: Apply the dust and inactivity pruning rules.
+	    bool fDummy;
+	    if (IsSpendingPrunedInputs(view, tx, nHeight, fDummy))
+		continue;
 
             unsigned int nTxSigOps = iter->GetSigOpCount();
             if (nBlockSigOps + nTxSigOps >= MAX_BLOCK_SIGOPS) {

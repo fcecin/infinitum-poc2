@@ -36,7 +36,6 @@
 #include "validationinterface.h"
 #include "versionbits.h"
 
-// Infinitum:: including infinitum.h
 #include "infinitum.h"
 
 #include <sstream>
@@ -1158,7 +1157,7 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
 
         CAmount inChainInputValue;
         double dPriority = view.GetPriority(tx, chainActive.Height(), inChainInputValue);
-
+	
         // Keep track of transactions that spend a coinbase, which we re-scan
         // during reorgs to ensure COINBASE_MATURITY is still met.
         bool fSpendsCoinbase = false;
@@ -1169,7 +1168,22 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
                 break;
             }
         }
-
+	
+	// Infinitum:: Apply the dust and inactivity pruning rules.
+	bool fDustPruned;
+	if (IsSpendingPrunedInputs(view, tx, GetHeight(), fDustPruned)) {
+	    if (fDustPruned)
+		return state.DoS(10, false,
+                                 REJECT_INVALID, "bad-txns-inputs-pruned-dust", false,
+                                 strprintf("%s spends a dust-pruned transaction output",
+                                           hash.ToString()));
+	    else
+		return state.DoS(10, false,
+                                 REJECT_INVALID, "bad-txns-inputs-pruned-expired", false,
+                                 strprintf("%s spends an inactivity-pruned transaction output",
+                                           hash.ToString()));
+	}
+	
         CTxMemPoolEntry entry(tx, nFees, GetTime(), dPriority, chainActive.Height(), pool.HasNoInputsOf(tx), inChainInputValue, fSpendsCoinbase, nSigOps, lp);
         unsigned int nSize = entry.GetTxSize();
 
@@ -1190,7 +1204,7 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
             return state.DoS(0, false, REJECT_INSUFFICIENTFEE, "insufficient priority");
         }
 
-        // Continuously rate-limit free (really, very-low-fee) transactions
+	// Continuously rate-limit free (really, very-low-fee) transactions
         // This mitigates 'penny-flooding' -- sending thousands of free transactions just to
         // be annoying or make others' transactions take longer to confirm.
         if (fLimitFree && nModifiedFees < ::minRelayTxFee.GetFee(nSize))
@@ -2377,6 +2391,17 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
                                      REJECT_INVALID, "bad-blk-sigops");
             }
 
+	    // Infinitum:: Apply the dust and inactivity pruning rules.
+	    bool fDustPruned;
+	    if (IsSpendingPrunedInputs(view, tx, pindex->nHeight, fDustPruned)) {
+		if (fDustPruned)
+		    return state.DoS(100, error("ConnectBlock(): dust-pruned inputs detected"),
+				     REJECT_INVALID, "bad-txns-inputs-pruned-dust");
+		else
+		    return state.DoS(100, error("ConnectBlock(): inactivity-pruned inputs detected"),
+				     REJECT_INVALID, "bad-txns-inputs-pruned-expired");
+	    }
+	    
             nFees += view.GetValueIn(tx)-tx.GetValueOut();
 
             std::vector<CScriptCheck> vChecks;

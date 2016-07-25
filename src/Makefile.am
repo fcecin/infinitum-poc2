@@ -109,6 +109,7 @@ INFINITUM_CORE_H = \
   httprpc.h \
   httpserver.h \
   init.h \
+  infinitum.h \
   key.h \
   keystore.h \
   dbwrapper.h \
@@ -192,6 +193,7 @@ libinfinitum_server_a_SOURCES = \
   checkpoints.cpp \
   httprpc.cpp \
   httpserver.cpp \
+  infinitum.cpp \
   init.cpp \
   dbwrapper.cpp \
   main.cpp \

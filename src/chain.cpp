@@ -33,6 +33,98 @@ CAmount CChain::GetMinSpendableOutputValue(uint64_t nOutputBlockHeight, uint64_t
 void CChain::SetTip(CBlockIndex *pindex) {
     if (pindex == NULL) {
         vChain.clear();
+	vMinSpendableOutputValues.clear(); // Infinitum:: update vMinSpendableOutputValues
+        return;
+    }
+    /*
+      // Infinitum:: update vMinSpendableOutputValues
+      Original code.
+      
+    vChain.resize(pindex->nHeight + 1);
+    while (pindex && vChain[pindex->nHeight] != pindex) {
+        vChain[pindex->nHeight] = pindex;
+        pindex = pindex->pprev;
+    }
+    */
+
+    // Infinitum:: update vMinSpendableOutputValues as well as the vChain
+
+    // Height ints:
+    // -1 = no genesis block
+    //  0 = just the genesis block (block at height #0)
+    //int nOldChainHeight = vChain.size() - 1;
+    int nNewChainHeight = pindex->nHeight;
+    int nFirstCommonNodeHeight = nNewChainHeight;
+    
+    vChain.resize(nNewChainHeight + 1);
+    while (pindex && vChain[pindex->nHeight] != pindex) {
+        vChain[pindex->nHeight] = pindex;
+        pindex = pindex->pprev;
+	--nFirstCommonNodeHeight;
+    }
+
+    // From first common height to new height, the vminspendableoutputvalues need recomputing
+    // the interval touched by the first common height + 1 (changed block) is the first interval to recompute
+    // GetCycle won't itself return e.g. -1 if you pass 0 (genesis) to it; it will return 0 which is incorrect 
+    //  in theory but it does what we want. we want this because endcycle will be -1 then, making sure no
+    //  update runs.
+    int nStartCycle = GetCycle(nFirstCommonNodeHeight + 1);
+
+    // the end cycle is the first *whole* cycle given by the new chain height
+    // if the end cycle is less than the start cycle, then the spendable output values array is empty
+    // end cycle can be -1 if there is no end cycle, which resizes the vminspend vector to 0
+    int nEndCycle = GetCycle(nNewChainHeight);
+    if (nNewChainHeight % INFINITUM_CHAIN_CYCLE_BLOCKS != 0)
+	--nEndCycle; // new height block doesn't land squarely at the end of its cycle, so it isn't whole
+
+    // cycles past the end are deleted
+    vMinSpendableOutputValues.resize(nEndCycle + 1); // Cycle #0 is the first one, so +1 to fit it in
+
+    // cycles from start to end are recomputed/re-tallied
+    // nEndCycle is less than nStartCycle for most of the calls to this method, in which case this loop
+    //   doesn't run (i.e. nothing to update)
+    for (int nCycle = nStartCycle; nCycle <= nEndCycle; ++nCycle) {
+
+	std::vector<int> vVoteCounts; // element 0 = ndustvote 0's count; element 1 = ndustvote 1's count etc.
+	vVoteCounts.resize(256);
+
+	int64_t nFirstHeight = 1 + (nStartCycle * INFINITUM_CHAIN_CYCLE_BLOCKS);
+	int64_t nLastHeight = (nEndCycle + 1) * INFINITUM_CHAIN_CYCLE_BLOCKS;
+
+	// Tally votes
+	for (int i = nFirstHeight; i <= nLastHeight; ++i) {
+	    int nVote = (vChain[i]->nVersion >> 8) & 0xFF;
+	    ++vVoteCounts[nVote];
+	}
+
+	// Compute the winning vote
+	CAmount nWinningVote = 0;
+
+	// will discard the lowest 5% votes and keep whatever the next vote is,
+	// so the dust value is the lowest common denominator among the 95% of miners that
+	// are on the side of wanting the highest dust value.
+	int nDiscardBudget = INFINITUM_CHAIN_CYCLE_BLOCKS / 20;
+	int nIndex = 0;
+	BOOST_FOREACH(int nVoteCount, vVoteCounts) {
+	  nDiscardBudget -= nVoteCount;
+	  if (nDiscardBudget < 0) {
+	    nWinningVote = 1 << nIndex; // votes for "0" say dust is 2^0, votes for "1" say dust is 2^1, etc.
+	    break;
+	  }
+	  ++nIndex;
+	}
+
+	// Update it
+	vMinSpendableOutputValues[nCycle] = nWinningVote;
+    }
+    
+    
+    /*
+      // Old settip (less complicated and more expensive, recomputes everything every time)
+
+    if (pindex == NULL) {
+        vChain.clear();
+	vMinSpendableOutputValues.clear();
         return;
     }
     vChain.resize(pindex->nHeight + 1);
@@ -57,13 +149,14 @@ void CChain::SetTip(CBlockIndex *pindex) {
     // **************************************************************************************************
     // **************************************************************************************************
     // **************************************************************************************************
+
     vMinSpendableOutputValues.clear(); // yep we are stupid right now
     std::vector<int> vVoteCounts; // element 0 = ndustvote 0's count; element 1 = ndustvote 1's count etc.
     vVoteCounts.resize(256);
     int nIntervalVotes = 0; // total votes cast into vVoteCounts (i.e. num block headers tallied so far)
     for (uint64_t nIndex = 1; nIndex < vChain.size(); ++nIndex) {
 
-	int nVote = (vChain[nIndex]->nVersion >> 8) & 0xFF;
+        int nVote = (vChain[nIndex]->nVersion >> 8) & 0xFF;
 
 	++vVoteCounts[nVote];
 	++nIntervalVotes;
@@ -96,6 +189,7 @@ void CChain::SetTip(CBlockIndex *pindex) {
 	nIntervalVotes = 0;
       }
     }
+    */
 }
 
 CBlockLocator CChain::GetLocator(const CBlockIndex *pindex) const {

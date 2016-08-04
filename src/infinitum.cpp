@@ -9,6 +9,11 @@
 
 int GetCycle(int nHeight)
 {
+    // Genesis block (nHeight == 0) is not tallied for dustvote, so it actually
+    //   precedes voting Cycle #0.
+    // However, this function returns "0" for the genesis block as well, and that's
+    //   actually a feature (see how CChain::SetTip() behaves when setting
+    //   it to the genesis)
     return (nHeight - 1) / INFINITUM_CHAIN_CYCLE_BLOCKS;
 }
 
